@@ -69,4 +69,6 @@ fabric.properties
 
 .idea/
 debug/
+target/
+dependency-reduced-pom.xml
 atombedwars.iml
