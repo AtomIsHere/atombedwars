@@ -2,6 +2,7 @@ package com.github.atomishere.atombedwars.arena;
 
 import com.boydti.fawe.object.schematic.Schematic;
 import com.github.atomishere.atombedwars.AtomBedwars;
+import com.github.atomishere.atombedwars.utils.AtomUtils;
 import com.github.atomishere.atombedwars.utils.ConfigUtils;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
@@ -74,28 +75,10 @@ public class ArenaManager {
             return null;
         }
 
-        File schematicFile = new File(new File(plugin.getDataFolder(), "schematics"), arenaData.getString("schematic_name"));
-        if (!schematicFile.exists()) {
-            plugin.getLogger().severe("Could not find schematic file for arena: " + arenaName + "!");
+        World arenaWorld = AtomUtils.generateWorld(arenaData.getString("schematic_name"), arenaName);
+        if(arenaWorld == null) {
             return null;
         }
-
-        Schematic arenaSchematic;
-        try {
-            arenaSchematic = ClipboardFormats.findByFile(schematicFile).load(schematicFile);
-        } catch(IOException ex) {
-            plugin.getLogger().severe("Invalid schematic in arena: " + arenaName + ".");
-            return null;
-        }
-
-        WorldCreator creator = new WorldCreator(arenaName)
-                .generateStructures(false)
-                .type(WorldType.FLAT)
-                .generator(new VoidWorldGenerator());
-
-        World arenaWorld = creator.createWorld();
-
-        arenaSchematic.paste(BukkitAdapter.adapt(arenaWorld), new Vector(0, 50, 0));
 
         BedwarsArena.PlayerContainer playerOneContainer = loadPlayerContainer(arenaData.getConfigurationSection("island_one"), arenaWorld, playerOne);
         BedwarsArena.PlayerContainer playerTwoContainer = loadPlayerContainer(arenaData.getConfigurationSection("island_two"), arenaWorld, playerTwo);
