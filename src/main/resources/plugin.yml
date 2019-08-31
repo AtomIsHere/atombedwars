@@ -1,0 +1,5 @@
+name: AtomBedwars
+main: com.github.atomishere.atombedwars.AtomBedwars
+version: 0.1_ALPHA
+
+depend: [FastAsyncWorldEdit]

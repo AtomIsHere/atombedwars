@@ -18,7 +18,7 @@ public abstract class Command extends BukkitCommand {
     protected String permission;
     protected CommandSource source;
 
-    protected Command(String name, AtomBedwars plugin) {
+    public Command(String name, AtomBedwars plugin) {
         super(name);
         this.plugin = plugin;
     }

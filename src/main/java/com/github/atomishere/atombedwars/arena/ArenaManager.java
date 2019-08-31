@@ -1,12 +1,8 @@
 package com.github.atomishere.atombedwars.arena;
 
-import com.boydti.fawe.object.schematic.Schematic;
 import com.github.atomishere.atombedwars.AtomBedwars;
 import com.github.atomishere.atombedwars.utils.AtomUtils;
 import com.github.atomishere.atombedwars.utils.ConfigUtils;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.bukkit.BukkitAdapter;
-import com.sk89q.worldedit.extent.clipboard.ClipboardFormats;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;

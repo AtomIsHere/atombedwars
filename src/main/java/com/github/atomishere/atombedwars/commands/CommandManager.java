@@ -1,22 +1,14 @@
 package com.github.atomishere.atombedwars.commands;
 
 import com.github.atomishere.atombedwars.AtomBedwars;
+import com.google.common.reflect.ClassPath;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
-import org.reflections.Reflections;
-import org.reflections.scanners.ResourcesScanner;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 
 @RequiredArgsConstructor
 public class CommandManager {
@@ -25,25 +17,29 @@ public class CommandManager {
     private final AtomBedwars plugin;
 
     public void loadCommands() {
-        List<ClassLoader> classLoaderList = new LinkedList<>();
-        classLoaderList.add(ClasspathHelper.contextClassLoader());
-        classLoaderList.add(ClasspathHelper.staticClassLoader());
-
-        Reflections reflections = new Reflections(new ConfigurationBuilder()
-                .setScanners(new SubTypesScanner(false), new ResourcesScanner())
-                .setUrls(ClasspathHelper.forClassLoader(classLoaderList.toArray(new ClassLoader[0])))
-                .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix("com.github.atomishere.atombedwars.commands"))));
-
-        Set<Class<? extends Command>> classes = reflections.getSubTypesOf(Command.class);
-        for(Class<? extends Command> clazz : classes) {
-            if(clazz.getSimpleName().startsWith(COMMAND_PREFIX)) loadCommandClass(clazz);
-        }
+        loadCommandClass(Command_testgeneration.class);
     }
 
-    private void loadCommandClass(Class<? extends Command> clazz) {
+    /*
+    public void loadCommands() {
+        List<Class<?>> classes;
+        try {
+            classes = getClasses("com.github.atomishere.atombedwars.commands");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        for(Class<?> clazz : classes) {
+            loadCommandClass(clazz);
+        }
+    }
+    */
+
+    private void loadCommandClass(Class<?> clazz) {
         String commandName = clazz.getSimpleName().replaceFirst(COMMAND_PREFIX, "");
 
-        Constructor<? extends Command> con;
+        Constructor con;
         try {
             con = clazz.getConstructor(String.class, AtomBedwars.class);
         } catch(NoSuchMethodException ex) {
@@ -51,7 +47,7 @@ public class CommandManager {
             return;
         }
 
-        Command inst;
+        Object inst;
         try {
             inst = con.newInstance(commandName, plugin);
         } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
@@ -59,18 +55,25 @@ public class CommandManager {
             return;
         }
 
-        CommandParameters params = inst.getClass().getAnnotation(CommandParameters.class);
+        if(!(inst instanceof Command)) {
+            plugin.getLogger().severe("Could not load command " + commandName + ". Does not extend Command");
+            return;
+        }
+
+        Command command = (Command) inst;
+
+        CommandParameters params = command.getClass().getAnnotation(CommandParameters.class);
         if(params == null) {
             plugin.getLogger().info("Not loading command " + getClass().getSimpleName() + ". Command class does not have Parameters");
             return;
         }
-        CommandPermissions perms = inst.getClass().getAnnotation(CommandPermissions.class);
+        CommandPermissions perms = command.getClass().getAnnotation(CommandPermissions.class);
         if(perms == null) {
             plugin.getLogger().info("Not loading command " + getClass().getSimpleName() + ". Command class does not have Permissions");
             return;
         }
 
-        inst.setup(params, perms);
+        command.setup(params, perms);
 
         try {
             final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
@@ -78,9 +81,27 @@ public class CommandManager {
             bukkitCommandMap.setAccessible(true);
             CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
 
-            commandMap.register(inst.getName(), inst);
+            commandMap.register(command.getName(), command);
         } catch (IllegalAccessException | NoSuchFieldException e) {
             e.printStackTrace();
         }
     }
+
+    /*
+    private static List<Class<?>> getClasses(String packageName) throws IOException {
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+
+        List<Class<?>> classes = new ArrayList<>();
+
+        Set<ClassPath.ClassInfo> classInfoSet = ClassPath.from(loader).getTopLevelClasses();
+        for(final ClassPath.ClassInfo info : classInfoSet) {
+            if(info.getName().startsWith(packageName)) {
+                final Class<?> clazz = info.load();
+                classes.add(clazz);
+            }
+        }
+
+        return classes;
+    }
+    */
 }

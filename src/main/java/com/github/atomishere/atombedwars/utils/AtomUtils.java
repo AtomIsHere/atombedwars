@@ -4,7 +4,7 @@ import com.boydti.fawe.object.schematic.Schematic;
 import com.github.atomishere.atombedwars.AtomBedwars;
 import com.github.atomishere.atombedwars.arena.VoidWorldGenerator;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.extent.clipboard.ClipboardFormats;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -71,7 +71,7 @@ public final class AtomUtils {
     }
 
     public static World generateWorld(String schematicName, String arenaName) {
-        File schematicFile = new File(new File(plugin.getDataFolder(), "schematics"), schematicName);
+        File schematicFile = new File(new File(plugin.getDataFolder(), "schematics"), schematicName + ".schematic");
         if (!schematicFile.exists()) {
             plugin.getLogger().severe("Could not find schematic file for arena: " + arenaName + "!");
             return null;
@@ -91,8 +91,7 @@ public final class AtomUtils {
                 .generator(new VoidWorldGenerator());
 
         World arenaWorld = creator.createWorld();
-        arenaSchematic.paste(BukkitAdapter.adapt(arenaWorld), new Vector(0, 50, 0));
-
+        arenaSchematic.paste(BukkitUtil.getLocalWorld(arenaWorld), new Vector(0, 50, 0));
         return arenaWorld;
     }
 }
